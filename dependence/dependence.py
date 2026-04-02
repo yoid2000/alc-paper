@@ -22,8 +22,8 @@ rare = 0.1
 reps = [0, 1, 2, 5, 10]
 
 plots_path = os.path.join('dependence_results')
-if not os.path.exists(plots_path):
-    os.makedirs(plots_path)
+os.makedirs(plots_path, exist_ok=True)
+
 
 def savefigs(plt, name):
     for suffix in ['.png', '.pdf']:
@@ -313,13 +313,13 @@ def double_plot(dataframes, model_param1, model_param2):
 
     # First boxplot
     sns.boxplot(x='difference', y='replicates', data=df1, orient='h', color='lightblue', ax=ax1)
-    ax1.set_xlabel('Absolute precision error', fontsize=14)
+    ax1.set_xlabel('Absolute accuracy error', fontsize=14)
     ax1.set_ylabel('Number of replicas\nper target individual', fontsize=14)
     ax1.set_title('Default model parameters', fontsize=14)
 
     # Second boxplot
     sns.boxplot(x='difference', y='replicates', data=df2, orient='h', color='lightblue', ax=ax2)
-    ax2.set_xlabel('Absolute precision error', fontsize=14)
+    ax2.set_xlabel('Absolute accuracy error', fontsize=14)
     ax2.set_ylabel('', fontsize=14)
     ax2.set_title('Model parameters with overfit avoidance', fontsize=14)
 
@@ -336,7 +336,7 @@ def plot_boxplot(df):
     sns.boxplot(x='difference', y='replicates', data=df_filtered, orient='h', color='lightblue')
     
     # Set the labels
-    plt.xlabel('Absolute precision error', fontsize=14)
+    plt.xlabel('Absolute accuracy error', fontsize=14)
     plt.ylabel('Number of replicas\nper target individual', fontsize=14)
 
     return plt

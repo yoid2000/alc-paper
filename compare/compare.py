@@ -33,9 +33,6 @@ def do_attack(job_num, strength):
     job = jobs[job_num]
     method_string = ''
     match_method = 'gower'
-    if 'method' in job:
-        method_string = '_mod'
-        match_method = job['method']
     print(f"Job number {job_num} started for strength {strength}.")
     pp.pprint(job)
     df_orig = pd.read_parquet(os.path.join(orig_files_dir, job['dataset']))
@@ -154,9 +151,7 @@ def do_plots():
     # Read the parquet files into dataframes
     try:
         df_ours_weak = pd.read_parquet(f"all_secret_known_weak.parquet")
-        df_ours_weak_mod = pd.read_parquet(f"all_secret_known_weak_mod.parquet")
         df_ours_strong = pd.read_parquet(f"all_secret_known_strong.parquet")
-        df_ours_strong_mod = pd.read_parquet(f"all_secret_known_strong_mod.parquet")
         df_prior_weak = pd.read_parquet(f"all_secret_known_prior_weak.parquet")
         df_prior_strong = pd.read_parquet(f"all_secret_known_prior_strong.parquet")
     except Exception as e:
@@ -165,15 +160,11 @@ def do_plots():
 
     ps_ours_weak = PlotsStuff(df_ours_weak, 'ours_weak')
     ps_ours_strong = PlotsStuff(df_ours_strong, 'ours_strong')
-    ps_ours_weak_mod = PlotsStuff(df_ours_weak_mod, 'ours_weak_mod')
-    ps_ours_strong_mod = PlotsStuff(df_ours_strong_mod, 'ours_strong_mod')
     ps_prior_weak = PlotsStuff(df_prior_weak, 'prior_weak')
     ps_prior_strong = PlotsStuff(df_prior_strong, 'prior_strong')
 
     ps_ours_weak.describe()
     ps_ours_strong.describe()
-    ps_ours_weak_mod.describe()
-    ps_ours_strong_mod.describe()
     ps_prior_weak.describe()
     ps_prior_strong.describe()
 
@@ -256,7 +247,7 @@ def plot_prior_versus_ours(ps_ours, ps_prior, strength):
     plt.savefig(os.path.join(plots_dir, f'prior_versus_ours_{strength}.pdf'))
     plt.close()
 
-    # Create a scatterplot for Baseline PRC
+    # Create a scatterplot for Baseline Fa
     plt.figure(figsize=(6, 4))
     sns.scatterplot(
         data=df_common,
@@ -265,9 +256,9 @@ def plot_prior_versus_ours(ps_ours, ps_prior, strength):
         alpha=0.7,
         edgecolor=None
     )
-    plt.xlabel('Best Base PRC (Prior)')
-    plt.ylabel('Best Base PRC (Own)')
-    plt.title(f'Comparison of Base PRC: Prior vs Own ({strength})')
+    plt.xlabel('Best Base Fa (Prior)')
+    plt.ylabel('Best Base Fa (Own)')
+    plt.title(f'Comparison of Base Fa: Prior vs Own ({strength})')
     plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1)  # Diagonal line
     plt.grid(True)
     plt.tight_layout()
@@ -290,16 +281,17 @@ def plot_prior_versus_ours(ps_ours, ps_prior, strength):
     plt.savefig(os.path.join(plots_dir, f'prior_versus_ours_box_{strength}.pdf'))
     plt.close()
 
-    # Make a boxplot for Base PRC
+    # Make a boxplot for Base Fa
     df_melted = df_common.melt(value_vars=["base_prc_prior", "base_prc_ours"], 
                             var_name="Test Type", 
-                            value_name="Base PRC")
+                            value_name="Base Fa")
+    df_melted["Test Type"] = df_melted["Test Type"].str.replace("prc", "fa", regex=False)
 
     plt.figure(figsize=(6, 3))
-    sns.boxplot(data=df_melted, x="Base PRC", y="Test Type", orient="h")
-    plt.xlabel("Base PRC", fontsize=12)
+    sns.boxplot(data=df_melted, x="Base Fa", y="Test Type", orient="h")
+    plt.xlabel("Base Fa", fontsize=12)
     plt.ylabel("Test Type", fontsize=12)
-    plt.title("Comparison of Base PRC: Prior vs Ours", fontsize=14)
+    plt.title("Comparison of Base Fa: Prior vs Ours", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(plots_dir, f'prior_versus_ours_base_box_{strength}.png'))
     plt.savefig(os.path.join(plots_dir, f'prior_versus_ours_base_box_{strength}.pdf'))
@@ -353,7 +345,7 @@ def plot_recall_boxes(ps_weak, ps_strong, whose):
     print(df_prc_cnt_strong_low['num_prc'].describe())
     print(f"Describe num_prc for strong all but extreme_low:")
     print(df_prc_cnt_strong_high['num_prc'].describe())
-    # Prepare data for recall boxplots
+    # Prepare data for coverage boxplots
     df_combined_recall = pd.DataFrame({
         "Value": (
             list(ps_strong.df_unpaired["base_recall"]) +
@@ -361,9 +353,9 @@ def plot_recall_boxes(ps_weak, ps_strong, whose):
             list(ps_weak.df_unpaired["attack_recall"])
         ),
         "Category": (
-            ["Base recall"] * len(ps_strong.df_unpaired["base_recall"]) +
-            ["Attack recall,\nstrong anon"] * len(ps_strong.df_unpaired["attack_recall"]) +
-            ["Attack recall,\nweak anon"] * len(ps_weak.df_unpaired["attack_recall"])
+            ["Base coverage"] * len(ps_strong.df_unpaired["base_recall"]) +
+            ["Attack coverage,\nstrong anon"] * len(ps_strong.df_unpaired["attack_recall"]) +
+            ["Attack coverage,\nweak anon"] * len(ps_weak.df_unpaired["attack_recall"])
         )
     })
 
@@ -382,15 +374,15 @@ def plot_recall_boxes(ps_weak, ps_strong, whose):
     # Create the subplots
     fig, axes = plt.subplots(2, 1, figsize=(5.5, 3.2), gridspec_kw={'height_ratios': [3, 2]}, sharex=False)
 
-    # Plot recall boxplots
+    # Plot coverage boxplots
     sns.boxplot(data=df_combined_recall, x="Value", y="Category", orient="h", ax=axes[0])
-    axes[0].set_xlabel("Recall (experiments with recall)", fontsize=10)
+    axes[0].set_xlabel("Coverage (experiments with coverage)", fontsize=10)
     axes[0].set_ylabel("")  # Remove y-axis label
 
     # Plot difference boxplots
     sns.boxplot(data=df_combined_diff, x="Value", y="Category", orient="h", ax=axes[1])
     if whose == 'ours':
-        axes[1].set_xlabel("ALC Difference ours (with recall - no recall)", fontsize=10)
+        axes[1].set_xlabel("ALC Difference ours (with coverage - no coverage)", fontsize=10)
     else:
         axes[1].set_xlabel("ALC Difference (ours - prior)", fontsize=10)
     axes[1].set_ylabel("")  # Remove y-axis label
@@ -426,28 +418,28 @@ def make_prec_prc_boxplots(ps_ours, ps_prior, strength):
             list(df_merged["alc_prior"])
         ),
         "Category": (
-            ["Base Prec Ours"] * len(df_merged["base_prec_ours"]) +
-            ["Base PRC Ours"] * len(df_merged["base_prc_ours"]) +
-            ["Base Prec/PRC Prior"] * len(df_merged["base_prc_prior"]) +
-            ["Base PRC Diff"] * len(df_merged["base_prc_diff"]) +
-            ["Attack PRC Ours"] * len(df_merged["attack_prc_ours"]) +
-            ["Attack PRC Prior"] * len(df_merged["attack_prc_prior"]) +
-            ["Attack PRC Diff"] * len(df_merged["attack_prc_diff"]) +
+            ["Base Accuracy Ours"] * len(df_merged["base_prec_ours"]) +
+            ["Base Fa Ours"] * len(df_merged["base_prc_ours"]) +
+            ["Base Accuracy/Fa' Prior"] * len(df_merged["base_prc_prior"]) +
+            ["Base Fa Diff"] * len(df_merged["base_prc_diff"]) +
+            ["Attack Fa Ours"] * len(df_merged["attack_prc_ours"]) +
+            ["Attack Fa' Prior"] * len(df_merged["attack_prc_prior"]) +
+            ["Attack Fa Diff"] * len(df_merged["attack_prc_diff"]) +
             ["ALC Ours"] * len(df_merged["alc_ours"]) +
-            ["ALC Prior"] * len(df_merged["alc_prior"])
+            ["ALC' Prior"] * len(df_merged["alc_prior"])
         )
     })
 
     palette = {
-        "Base Prec Ours": "#1f78b4",      # darker blue
-        "Base PRC Ours": "#1f78b4",       # darker blue
-        "Attack PRC Ours": "#1f78b4",     # darker blue
+        "Base Accuracy Ours": "#1f78b4",      # darker blue
+        "Base Fa Ours": "#1f78b4",            # darker blue
+        "Attack Fa Ours": "#1f78b4",          # darker blue
         "ALC Ours": "#1f78b4",            # darker blue
-        "Base Prec/PRC Prior": "#e31a1c", # darker red
-        "Attack PRC Prior": "#e31a1c",    # darker red
-        "ALC Prior": "#e31a1c",           # darker red
-        "Base PRC Diff": "#ff7f00",       # darker orange
-        "Attack PRC Diff": "#ff7f00",     # darker orange
+        "Base Accuracy/Fa' Prior": "#e31a1c",  # darker red
+        "Attack Fa' Prior": "#e31a1c",         # darker red
+        "ALC' Prior": "#e31a1c",           # darker red
+        "Base Fa Diff": "#ff7f00",             # darker orange
+        "Attack Fa Diff": "#ff7f00",           # darker orange
     }
 
     # Create the horizontal boxplots
@@ -517,7 +509,7 @@ def make_tables(ps_ours_weak, ps_prior_weak):
 \\begin{{small}}
 \\begin{{tabular}}{{cc|cc}}
 \\toprule
- Ours & Prior & No recall & Complete \\\\
+ Ours & Prior & No coverage & Complete \\\\
 \\midrule
 At risk & Safe & {ours_risk_prior_safe_recall}\\% ({num_ours_risk_prior_safe_recall}) & {ours_risk_prior_safe_weak}\\% ({num_ours_risk_prior_safe_weak}) \\\\
 Serious & Safe & {ours_unsafe_prior_safe_recall}\\% ({num_ours_unsafe_prior_safe_recall}) & {ours_unsafe_prior_safe_weak}\\% ({num_ours_unsafe_prior_safe_weak}) \\\\
@@ -578,7 +570,7 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
     )
 
     plt.ylabel('Clipped ALC our approach')
-    plt.xlabel('Clipped ALC prior approach')
+    plt.xlabel("Clipped ALC' prior approach")
     #plt.ylim(0.4, 1.05)
     #plt.xlim(-0.55, 1.05)
 
@@ -604,7 +596,7 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
     # Add a colorbar directly from the scatterplot
     norm = plt.Normalize(df_merged['attack_recall'].min(), df_merged['attack_recall'].max())
     sm = scatter.collections[0]  # Use the scatterplot's PathCollection
-    cbar = plt.colorbar(sm, label='Attack Recall our approach', orientation='vertical', pad=0.02)
+    cbar = plt.colorbar(sm, label='Attack Coverage our approach', orientation='vertical', pad=0.02)
 
     # Add clipped percentages to the plot
     plt.text(clip_val, 1, f"{clipped_percent_prior}% clipped", fontsize=8, color='black', ha='left', va='center')
@@ -686,8 +678,8 @@ def plot_alc_unpaired_vs_one(ps, strength):
         legend=False  # Remove the legend
     )
 
-    plt.ylabel('Clipped ALC with recall')
-    plt.xlabel('Clipped ALC no recall')
+    plt.ylabel('Clipped ALC with coverage')
+    plt.xlabel('Clipped ALC no coverage')
     #plt.ylim(0.4, 1.05)
     #plt.xlim(-0.55, 1.05)
 
@@ -713,7 +705,7 @@ def plot_alc_unpaired_vs_one(ps, strength):
     # Add a colorbar directly from the scatterplot
     norm = plt.Normalize(df_merged['attack_recall'].min(), df_merged['attack_recall'].max())
     sm = scatter.collections[0]  # Use the scatterplot's PathCollection
-    cbar = plt.colorbar(sm, label='Attack Recall our approach', orientation='vertical', pad=0.02)
+    cbar = plt.colorbar(sm, label='Attack Coverage our approach', orientation='vertical', pad=0.02)
 
     # Add clipped percentages to the plot
     plt.text(clip_val, 1, f"{clipped_percent_one}% clipped", fontsize=8, color='black', ha='left', va='center')
@@ -730,16 +722,17 @@ def plot_alc_unpaired_vs_one(ps, strength):
     print(f"Description of attack_recall for unpaired PRC:")
     print(ps.df_unpaired['attack_recall'].describe())
 
-    # Make a boxplot for recall
+    # Make a boxplot for coverage
     df_melted = ps.df_unpaired.melt(value_vars=["base_recall", "attack_recall"], 
                             var_name="Test Type", 
-                            value_name="Recall")
+                            value_name="Coverage")
+    df_melted["Test Type"] = df_melted["Test Type"].str.replace("recall", "coverage", regex=False)
 
     plt.figure(figsize=(6, 3))
-    sns.boxplot(data=df_melted, x="Recall", y="Test Type", orient="h")
-    plt.xlabel("Recall", fontsize=12)
+    sns.boxplot(data=df_melted, x="Coverage", y="Test Type", orient="h")
+    plt.xlabel("Coverage", fontsize=12)
     plt.ylabel("Test Type", fontsize=12)
-    plt.title("Comparison of Recall: Baseline versus Attack", fontsize=14)
+    plt.title("Comparison of Coverage: Baseline versus Attack", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(plots_dir, f'recalls_box_{strength}.png'))
     plt.savefig(os.path.join(plots_dir, f'recalls_box_{strength}.pdf'))
@@ -748,8 +741,6 @@ def plot_alc_unpaired_vs_one(ps, strength):
 def do_gather(measure_type, strength, method):
     print(f"Gathering files for {measure_type}, strength {strength}, method {method}...")
     method_str = ""
-    if method == "mod_gower":
-        method_str = "_mod"
     work_files_dir = os.path.join(f'work_files_{strength}{method_str}')
     out_name = f'all_secret_known_{strength}{method_str}.parquet'
     if measure_type == 'prior_measure':
@@ -799,13 +790,11 @@ def do_config():
             other_columns = [c for c in df_orig.columns if c != column]
             jobs.append({"approach": "ours", "dataset": file_name, "known_columns": other_columns})
             jobs.append({"approach": "prior", "dataset": file_name, "known_columns": other_columns})
-            jobs.append({"method": "mod_gower", "approach": "ours", "dataset": file_name, "known_columns": other_columns})
             pass
         known_column_sets = get_good_known_column_sets(df_orig, list(df_orig.columns), max_sets=200)
         for column_set in known_column_sets:
             jobs.append({"approach": "ours", "dataset": file_name, "known_columns": list(column_set)})
             jobs.append({"approach": "prior", "dataset": file_name, "known_columns": list(column_set)})
-            jobs.append({"method": "mod_gower", "approach": "ours", "dataset": file_name, "known_columns": list(column_set)})
     random.shuffle(jobs)
     for i, job in enumerate(jobs):
         job['job_num'] = i
@@ -859,10 +848,8 @@ def main():
         do_plots()
     elif args.command == "gather":
         do_gather('measure', 'strong', "gower")
-        do_gather('measure', 'strong', "mod_gower")
         do_gather('prior_measure', 'strong', "gower")
         do_gather('measure', 'weak', "gower")
-        do_gather('measure', 'weak', "mod_gower")
         do_gather('prior_measure', 'weak', "gower")
     elif args.command == "config":
         do_config()
