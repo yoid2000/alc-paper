@@ -22,6 +22,7 @@ python -w compare.py attack 1093
 python -w compare.py attack 3685
 
 python compare.py gather
+python compare.py plot
 ```
 
 ## Explanation of commands
@@ -36,9 +37,9 @@ The following four commands take about 5 minutes each to run.
 
 `python -w compare.py attack 1093` and `python -w compare.py attack 3685` are the same two configurations, but this time using the weakly anonymized data. They are stored in `work_files_prior_weak/adult.1093` and `work_files_weak/adult.3685` respectively.
 
-`python compare.py gather` collects the work_files files and collates them into four results files, `all_secret_known_prior_strong.parquet`, `all_secret_known_prior_weak.parquet`, `all_secret_known_strong.parquet`, `nd all_secret_known_weak.parquet`.
+`python compare.py gather` normally collects the work_files files and collates them into four results files, `all_secret_known_prior_strong.parquet`, `all_secret_known_prior_weak.parquet`, `all_secret_known_strong.parquet`, `nd all_secret_known_weak.parquet`. We've pre-populated these with all of the final data, so this does nothing in this case.
 
-Note that `python compare.py plot` will not work properly after 
+`python compare.py plot` reads in the results files and generates the plots and tables used in the paper.
 
 ## Datasets
 

@@ -100,6 +100,8 @@ class PlotsStuff:
             df_one contains one entry per group, which is the paired record with attack_recall == 1
         '''
         self.df = df
+        if 'paired' not in self.df.columns:
+            self.df['paired'] = False
         self.label = label
         self.df['alc'] = self.df['alc'].clip(lower=clip_val)
         idx = self.df.groupby(['secret_column', 'known_columns'])['alc'].idxmax()
