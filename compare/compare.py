@@ -103,6 +103,7 @@ class PlotsStuff:
         if 'paired' not in self.df.columns:
             self.df['paired'] = False
         self.label = label
+        self.has_plot_data = True
         self.df['alc'] = self.df['alc'].clip(lower=clip_val)
         idx = self.df.groupby(['secret_column', 'known_columns'])['alc'].idxmax()
         self.df_max = self.df.loc[idx].reset_index(drop=True)
@@ -112,6 +113,16 @@ class PlotsStuff:
         self.df_one = self.df[self.df['attack_recall'] == 1].reset_index(drop=True)
         idx = self.df_one.groupby(['secret_column', 'known_columns'])['alc'].idxmax()
         self.df_one = self.df_one.loc[idx].reset_index(drop=True)
+        if len(self.df_max) == 0 or len(self.df_one) == 0 or len(self.df_unpaired) == 0:
+            print(f"There is not enough data to plot for {self.label}.")
+            self.max_clipped = 0
+            self.one_clipped = 0
+            self.unpaired_clipped = 0
+            self.one_clipped_frac = 0
+            self.unpaired_clipped_frac = 0
+            self.max_clipped_frac = 0
+            self.has_plot_data = False
+            return
 
         self.max_clipped = len(self.df_max[self.df_max['alc'] <= clip_val])
         self.one_clipped = len(self.df_one[self.df_one['alc'] <= clip_val])
@@ -226,6 +237,9 @@ def plot_prior_versus_ours(ps_ours, ps_prior, strength):
         on=['secret_column', 'known_columns'],
         suffixes=('_ours', '_prior')
     )
+    if df_common.empty:
+        print(f"Not enough common data for prior-vs-ours plots ({strength}). Skipping.")
+        return
     df_common['prc_diff'] = df_common['base_prc_ours'] - df_common['base_prc_prior']
     df_common['alc_diff'] = df_common['alc_ours'] - df_common['alc_prior']
 
@@ -301,6 +315,10 @@ def plot_prior_versus_ours(ps_ours, ps_prior, strength):
 
 def plot_recall_boxes(ps_weak, ps_strong, whose):
     print(f"plot_recall_boxes: {whose}")
+    if (ps_strong.df_unpaired.empty or ps_weak.df_unpaired.empty or
+            ps_strong.df_one.empty or ps_weak.df_one.empty):
+        print(f"Not enough data for recall box plots ({whose}). Skipping.")
+        return
 
     # For each value of column halt_code in ps_strong.df_unpaired, count the rows
     # and print the counts
@@ -321,6 +339,9 @@ def plot_recall_boxes(ps_weak, ps_strong, whose):
         on=['secret_column', 'known_columns'],
         suffixes=('_unpaired', '_one')
     )
+    if df_merged_strong.empty or df_merged_weak.empty:
+        print(f"Not enough merged data for recall box plots ({whose}). Skipping.")
+        return
     # compute the difference of alc_unpaired and alc_one
     df_merged_strong['alc_difference'] = df_merged_strong['alc_unpaired'] - df_merged_strong['alc_one']
     df_merged_weak['alc_difference'] = df_merged_weak['alc_unpaired'] - df_merged_weak['alc_one']
@@ -372,6 +393,9 @@ def plot_recall_boxes(ps_weak, ps_strong, whose):
             ["ALC difference,\nweak anon"] * len(df_merged_weak["alc_difference"])
         )
     })
+    if df_combined_recall.empty or df_combined_diff.empty:
+        print(f"Not enough boxplot data for recall plots ({whose}). Skipping.")
+        return
 
     # Create the subplots
     fig, axes = plt.subplots(2, 1, figsize=(5.5, 3.2), gridspec_kw={'height_ratios': [3, 2]}, sharex=False)
@@ -402,6 +426,9 @@ def make_prec_prc_boxplots(ps_ours, ps_prior, strength):
         on=['secret_column', 'known_columns'],
         suffixes=('_ours', '_prior')
     )
+    if df_merged.empty:
+        print(f"Not enough data for precision/PRC boxplots ({strength}). Skipping.")
+        return
     df_merged['base_prec_diff'] = df_merged['base_prec_ours'] - df_merged['base_prec_prior']
     df_merged['base_prc_diff'] = df_merged['base_prc_ours'] - df_merged['base_prc_prior']
     df_merged['attack_prc_diff'] = df_merged['attack_prc_ours'] - df_merged['attack_prc_prior']
@@ -431,6 +458,9 @@ def make_prec_prc_boxplots(ps_ours, ps_prior, strength):
             ["ALC' Prior"] * len(df_merged["alc_prior"])
         )
     })
+    if df_box.empty:
+        print(f"Not enough prepared data for precision/PRC boxplots ({strength}). Skipping.")
+        return
 
     palette = {
         "Base Accuracy Ours": "#1f78b4",      # darker blue
@@ -472,6 +502,9 @@ def make_tables(ps_ours_weak, ps_prior_weak):
         on=['secret_column', 'known_columns'],
         suffixes=('_unpaired', '_one')
     )
+    if df_merged_recall.empty or df_merged_weak.empty:
+        print("Not enough data to build comparison table. Skipping.")
+        return
     num_ours_safe_prior_unsafe_recall = len(df_merged_recall[(df_merged_recall['alc_unpaired'] < 0.5) & (df_merged_recall['alc_one'] >= 0.75)])
     num_ours_unsafe_prior_safe_recall = len(df_merged_recall[(df_merged_recall['alc_unpaired'] >= 0.75) & (df_merged_recall['alc_one'] < 0.5)])
     num_ours_risk_prior_safe_recall = len(df_merged_recall[(df_merged_recall['alc_unpaired'] >= 0.5) & (df_merged_recall['alc_unpaired'] < 0.75) & (df_merged_recall['alc_one'] < 0.5)])
@@ -537,6 +570,9 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
         on=['secret_column', 'known_columns'],
         suffixes=('_ours', '_prior')
     )
+    if df_merged.empty:
+        print(f"Not enough merged data for ours-vs-prior ALC plot ({strength}). Skipping.")
+        return
     print(f"Number of rows in merged dataframe __use__: {len(df_merged)}")
     # Compute the difference of alc values
     df_merged['alc_difference'] = abs(df_merged['alc_ours'] - df_merged['alc_prior'])
@@ -554,6 +590,10 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
     print(df_merged['alc_difference'].quantile(0.9))
 
     df_merged = df_merged.sort_values(by='attack_recall', ascending=False)
+    df_plot = df_merged.dropna(subset=['alc_ours', 'alc_prior', 'attack_recall'])
+    if df_plot.empty:
+        print(f"No plottable rows for ours-vs-prior ALC plot ({strength}). Skipping.")
+        return
     clipped_percent_ours = 100 * ps_ours.unpaired_clipped_frac
     clipped_percent_ours = int(clipped_percent_ours) if clipped_percent_ours >= 1.0 else clipped_percent_ours
     clipped_percent_prior = 100 * ps_prior.one_clipped_frac
@@ -561,7 +601,7 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
     # make a seaborn scatterplot from df_merged with alc_ours on x and alc_prior on y
     plt.figure(figsize=(5, 3))
     scatter = sns.scatterplot(
-        data=df_merged,
+        data=df_plot,
         y='alc_ours',
         x='alc_prior',
         hue='attack_recall',  # Color points by 'attack_recall'
@@ -617,6 +657,9 @@ def plot_alc_ours_vs_prior(ps_ours, ps_prior, strength):
 
 def plot_alc_unpaired_vs_one(ps, strength):
     print(f"plot_alc_unpaired_vs_one: {strength}")
+    if ps.df_unpaired.empty or ps.df_one.empty:
+        print(f"Not enough data for unpaired-vs-one ALC plot ({strength}). Skipping.")
+        return
     # make a new column called alc where all alc values less than -0.5 are set to -0.5
     print(f"Number of rows in 'unpaired': {len(ps.df_unpaired)}")
     print(f"Number of unpaired clipped alc values: {ps.unpaired_clipped}")
@@ -646,6 +689,9 @@ def plot_alc_unpaired_vs_one(ps, strength):
         suffixes=('_unpaired', '_one')
     )
     print(f"Number of rows in merged dataframe: {len(df_merged)}")
+    if df_merged.empty:
+        print(f"Not enough merged data for unpaired-vs-one ALC plot ({strength}). Skipping.")
+        return
     # Compute the difference of alc values
     df_merged['alc_difference'] = df_merged['alc_unpaired'] - df_merged['alc_one']
     print("ps.df_unpaired alc:")
@@ -663,6 +709,10 @@ def plot_alc_unpaired_vs_one(ps, strength):
     print(f"Number of rows where ALC (unpaired) between 0.5-0.75 and ALC (one) < 0.5 ({strength}): {len(alc_unpaired_better)}, {len(alc_unpaired_better) / len(df_merged)}")
 
     df_merged = df_merged.sort_values(by='attack_recall', ascending=False)
+    df_plot = df_merged.dropna(subset=['alc_unpaired', 'alc_one', 'attack_recall'])
+    if df_plot.empty:
+        print(f"No plottable rows for unpaired-vs-one ALC plot ({strength}). Skipping.")
+        return
     # make a seaborn scatterplot from df_merged with alc_unpaired on x and alc_one on y
     clipped_percent_unpaired = 100 * ps.unpaired_clipped_frac
     clipped_percent_unpaired = int(clipped_percent_unpaired) if clipped_percent_unpaired >= 1.0 else clipped_percent_unpaired
@@ -670,7 +720,7 @@ def plot_alc_unpaired_vs_one(ps, strength):
     clipped_percent_one = int(clipped_percent_one) if clipped_percent_one >= 1.0 else clipped_percent_one
     plt.figure(figsize=(5, 3))
     scatter = sns.scatterplot(
-        data=df_merged,
+        data=df_plot,
         y='alc_unpaired',
         x='alc_one',
         hue='attack_recall',  # Color points by 'attack_recall'
@@ -728,6 +778,9 @@ def plot_alc_unpaired_vs_one(ps, strength):
     df_melted = ps.df_unpaired.melt(value_vars=["base_recall", "attack_recall"], 
                             var_name="Test Type", 
                             value_name="Coverage")
+    if df_melted.empty:
+        print(f"Not enough recall data for coverage boxplot ({strength}). Skipping.")
+        return
     df_melted["Test Type"] = df_melted["Test Type"].str.replace("recall", "coverage", regex=False)
 
     plt.figure(figsize=(6, 3))
