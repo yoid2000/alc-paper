@@ -10,12 +10,35 @@ For more information, see the `README.md` files in each of the code subdirectori
 
 The results in this repo are generated from anonymity_loss_coefficient version 1.0.32. This version is automatically installed from requirements.txt.
 
-## Simple tests for reviewer to test that code works
+## Commands for reviewer to test that code works
 
 ```
 cd compare
+python compare.py -h
 
+python compare.py attack 1093
+python compare.py attack 3685
+python -w compare.py attack 1093
+python -w compare.py attack 3685
+
+python compare.py gather
 ```
+
+## Explanation of commands
+
+`python compare.py -h` gives the various command options
+
+The following four commands take about 5 minutes each to run.
+
+`python compare.py attack 1093` executes the configuration in `jobs.json` at index 1093. (This is designed to work with SLURM.) This is for the `adult.parquet` dataset (in `original_data_parquet`), for the prior method, using the strongly anonymized dataset in `strong_data_parquet`, and stores the results in `work_files_prior_strong/adult.1093`.  
+
+`python compare.py attack 3685` is the same thing for index 3685, which is the same strongly anonymized data, but using our method, and storing the results in `work_files_strong/adult.3685`.
+
+`python -w compare.py attack 1093` and `python -w compare.py attack 3685` are the same two configurations, but this time using the weakly anonymized data. They are stored in `work_files_prior_weak/adult.1093` and `work_files_weak/adult.3685` respectively.
+
+`python compare.py gather` collects the work_files files and collates them into four results files, `all_secret_known_prior_strong.parquet`, `all_secret_known_prior_weak.parquet`, `all_secret_known_strong.parquet`, `nd all_secret_known_weak.parquet`.
+
+Note that `python compare.py plot` will not work properly after 
 
 ## Datasets
 
