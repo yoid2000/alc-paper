@@ -46,7 +46,7 @@ def do_attack(job_num, strength):
     if job['approach'] == 'ours':
         work_files_dir = os.path.join(f'work_files_{strength}{method_string}')
     else:
-        work_files_dir = os.path.join(f'work_files_{strength}{method_string}')
+        work_files_dir = os.path.join(f'work_files_prior_{strength}{method_string}')
         prior_experiment_swap_fraction = 0.4
         if strength == 'weak':
             prior_experiment_swap_fraction = 0.1
