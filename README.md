@@ -1,8 +1,21 @@
 # alc-paper
 
+The dump from was most recently tested on Python 3.12.4.
+
+Install packages with `python -m pip install -r requirements.txt`.
+
+For more information, see the `README.md` files in each of the code subdirectories.
+
 ## Version
 
-The results in this repo are generated from anonymity_loss_coefficient version 1.0.32
+The results in this repo are generated from anonymity_loss_coefficient version 1.0.32. This version is automatically installed from requirements.txt.
+
+## Simple tests for reviewer to test that code works
+
+```
+cd compare
+
+```
 
 ## Datasets
 
