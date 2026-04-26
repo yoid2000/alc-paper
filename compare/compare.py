@@ -739,13 +739,16 @@ def plot_alc_unpaired_vs_one(ps, strength):
     plt.close()
 
 def do_gather(measure_type, strength, method):
-    print(f"Gathering files for {measure_type}, strength {strength}, method {method}...")
     method_str = ""
     work_files_dir = os.path.join(f'work_files_{strength}{method_str}')
     out_name = f'all_secret_known_{strength}{method_str}.parquet'
     if measure_type == 'prior_measure':
         work_files_dir = os.path.join(f'work_files_prior_{strength}')
         out_name = f'all_secret_known_prior_{strength}.parquet'
+    if os.path.exists(out_name):
+        print(f"{out_name} already exists.")
+        return
+    print(f"Gathering files for {measure_type}, strength {strength}, method {method}...")
     # List to store dataframes
     dataframes = []
     
