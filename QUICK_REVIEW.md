@@ -5,7 +5,7 @@ Install packages with `python -m pip install -r requirements.txt`.
 
 ## Commands for reviewer to test that measurement code works
 
-The code that runs the attacks which are measured using ours and prior approaches are in directory `compare` (Section 6 of the paper).
+The code that runs the attacks which are measured using ours and prior approaches are in directory `compare` (Section 6 of the paper). This code represents the main experimental results of the paper. As such, a reviewer wishing to just do a very quick check could run just one of these (i.e. `python compare.py attack 3685`).
 
 ```
 cd compare
@@ -17,18 +17,18 @@ All code is in `compare.py`. The options and syntax can be displayed with:
 python compare.py --help
 ```
 
-The code is designed to run in SLURM (see for instance `slurm_script_strong`). As such, the attack measurement commands include an index into the `jobs.json` configuration file, and can be run as follows. Note that each of the following commands takes several minutes to run:
+The code is designed to run in SLURM (see for instance `slurm_script_strong`). As such, the attack measurement commands include an index into the `jobs.json` configuration file, and can be run as follows. Note that each of the following commands takes several minutes to run.
 
 ```
-python compare.py attack 1093
 python compare.py attack 3685
-python compare.py --weak attack 1093
+python compare.py attack 1093
 python compare.py --weak attack 3685
+python compare.py --weak attack 1093
 ```
 
-`python compare.py attack 1093` executes the configuration in `jobs.json` at index 1093. This is for the `adult.parquet` dataset (in `original_data_parquet`), for the prior method, using the strongly anonymized dataset in `strong_data_parquet`, and stores the results in `work_files_prior_strong/adult.1093`.  
+`python compare.py attack 3685` executes the configuration in `jobs.json` at index 3685. This is for the `adult.parquet` dataset (in `original_data_parquet`), for the prior method, using the strongly anonymized dataset in `strong_data_parquet`, and stores the results in `work_files_strong/adult.3685`.  
 
-`python compare.py attack 3685` is the same thing for index 3685, which is the same strongly anonymized data, but using our method, and storing the results in `work_files_strong/adult.3685`.
+`python compare.py attack 1093` is the same thing for index 1093, which is the same strongly anonymized data, but using our method, and storing the results in `work_files_prior_strong/adult.1093`.
 
 `python -w compare.py attack 1093` and `python -w compare.py attack 3685` are the same two configurations, but this time using the weakly anonymized data. They are stored in `work_files_prior_weak/adult.1093` and `work_files_weak/adult.3685` respectively.
 
