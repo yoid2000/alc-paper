@@ -8,7 +8,7 @@ For more information, see the `README.md` files in each of the code subdirectori
 
 ## Version
 
-The results in this repo are generated from anonymity_loss_coefficient version 1.0.32. This version is automatically installed from requirements.txt.
+The results in this repo are generated from anonymity_loss_coefficient version 1.0.27. This version is automatically installed from requirements.txt.
 
 ## Commands for reviewer to test that code works
 
