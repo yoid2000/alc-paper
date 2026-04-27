@@ -45,7 +45,7 @@ python compare.py gather
 python compare.py plot
 ```
 
-`python compare.py plot` reads in the results files and generates the plots and tables in directory `plots`. When run with the results of the four above attacks, the plots are not interested. To replicate the figures in the paper, you can copy the contents of the `completed_results` directory into the `compare` directory, and run `python compare.py plot` again.
+`python compare.py plot` reads in the results files and generates the plots and tables in directory `plots`. When run with the results of the four above attacks, the plots are incomplete and not interesting. To replicate the figures in the paper, you can copy the contents of the `completed_results` directory into the `compare` directory, and run `python compare.py plot` again.
 
 # Commands for reviewer to test that the dependency code works
 
