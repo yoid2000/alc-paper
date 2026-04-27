@@ -670,8 +670,11 @@ def plot_alc_unpaired_vs_one(ps, strength):
     print(f"Number of one clipped alc values: {ps.one_clipped}")
     print(f"Fraction of one alc values that are clipped: {ps.one_clipped_frac}")
     # take the sum of base_count in ps.df_one
-    print(f"Total number of predictions: {ps.df_one['base_count'].sum()}")
-    print(f"Average predictions per attack __use__: {ps.df_one['base_count'].sum() / len(ps.df_one)}")
+    if 'base_count' in ps.df_one.columns:
+        print(f"Total number of predictions: {ps.df_one['base_count'].sum()}")
+        print(f"Average predictions per attack __use__: {ps.df_one['base_count'].sum() / len(ps.df_one)}")
+    else:
+        print("Column 'base_count' not present. Skipping base_count summary stats.")
     # count the number of rows in df where both base_si and attack_si are <= 0.1, and paired is True
     df_paired = ps.df[(ps.df['base_si'] <= 0.1) & (ps.df['attack_si'] <= 0.1) & (ps.df['paired'] == True)]
     print(f"Number of significant PRC scores __use__: {len(df_paired)}")
