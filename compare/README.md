@@ -1,3 +1,5 @@
+The complete gathered results of running all experiments are in `completed_results`.  
+
 `compare.py` is designed to work on a SLURM cluster.
 
 Running `python compare.py -h` produces:

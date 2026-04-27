@@ -1,4 +1,4 @@
-This directory contains the code and results for generating the plot showing the effect of dependent rows in the data.
+This directory contains the code and results for generating the plot showing the effect of dependent rows in the data. The complete gathered results of running all measures are in `completed_results`.
 
 `python dependence.py measure <job_num>` generates a measure for one column in one dataset (from `../original_data_parquet`) for one amount of replication for one model (overfitting or not). It places the results of that measure in a `json` file in directory `dependence_results`. This code is meant to be run within a SLURM or other cluster computing environment. If SLURM, all jobs can be run an SBATCH script similar to this:
 
